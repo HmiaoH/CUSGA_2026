@@ -308,6 +308,7 @@ Transform:
   m_Children:
   - {fileID: 1539533533}
   - {fileID: 415212564}
+  - {fileID: 941839277}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &225255143
@@ -385,11 +386,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   camerasList:
   - name: TopDown
-    virtualCamera: {fileID: 1420343492}
+    camera: {fileID: 1420343492}
+    target: {fileID: 1089927911}
+    defaultPosition: {x: 0, y: 0, z: 0}
+    moveSpeed: 1.5
+    bounds: 0.5
   - name: TopBehind
-    virtualCamera: {fileID: 951225687}
-  defaultCamera: {fileID: 951225687}
-  cameraMoveSpeed: 7
+    camera: {fileID: 951225687}
+    target: {fileID: 1004474325}
+    defaultPosition: {x: 0, y: 0, z: 0}
+    moveSpeed: 1.2
+    bounds: 0.5
+  defaultCameraName: TopBehind
 --- !u!4 &322980199
 Transform:
   m_ObjectHideFlags: 0
@@ -538,8 +546,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 436114048}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.00767321, y: 0.94854254, z: -0.31571603, w: 0.0230549}
-  m_LocalPosition: {x: -0.1977191, y: 3.0466914, z: 4.0649242}
+  m_LocalRotation: {x: 0.70090926, y: 1.0135916e-14, z: -9.9605366e-15, w: 0.71325046}
+  m_LocalPosition: {x: -5.515081, y: 1.6642051, z: 4.3412533}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1099,10 +1107,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BindingMode: 1
-  m_FollowOffset: {x: 0, y: 0, z: -10}
-  m_XDamping: 1
-  m_YDamping: 1
-  m_ZDamping: 1
+  m_FollowOffset: {x: 0, y: 1.5, z: -0.01}
+  m_XDamping: 0
+  m_YDamping: 0
+  m_ZDamping: 0
   m_AngularDampingMode: 0
   m_PitchDamping: 0
   m_YawDamping: 0
@@ -1215,14 +1223,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 941839276}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1089927911}
   - {fileID: 1004474325}
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 128219123}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &951225685
 GameObject:
@@ -1249,8 +1257,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 951225685}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.00767321, y: 0.94854254, z: -0.31571603, w: 0.0230549}
-  m_LocalPosition: {x: -0.1977191, y: 3.0466914, z: 4.0649242}
+  m_LocalRotation: {x: 0.22975296, y: 1.0310788e-11, z: -2.434047e-12, w: 0.973249}
+  m_LocalPosition: {x: -5.524081, y: 1.1642051, z: 2.3602533}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1275,8 +1283,8 @@ MonoBehaviour:
   m_StreamingVersion: 20170927
   m_Priority: 10
   m_StandbyUpdate: 2
-  m_LookAt: {fileID: 0}
-  m_Follow: {fileID: 0}
+  m_LookAt: {fileID: 1004474325}
+  m_Follow: {fileID: 1004474325}
   m_Lens:
     FieldOfView: 60.000004
     OrthographicSize: 5
@@ -1370,7 +1378,7 @@ Transform:
   m_GameObject: {fileID: 1004474324}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.508, y: 1.301, z: -2.744}
+  m_LocalPosition: {x: -2.877, y: 1.301, z: 2.672}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1406,7 +1414,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 97a2cf455b57470dbb5f10f83152913e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerInput: {fileID: 0}
   cameraMoveDirection: {x: 0, y: 0, z: 0}
 --- !u!4 &1085200971
 Transform:
@@ -1437,7 +1444,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Actions: {fileID: -944628639613478452, guid: 4a5066f4264ad4d249286a483b8de014,
     type: 3}
-  m_NotificationBehavior: 0
+  m_NotificationBehavior: 2
   m_UIInputModule: {fileID: 0}
   m_DeviceLostEvent:
     m_PersistentCalls:
@@ -1448,10 +1455,42 @@ MonoBehaviour:
   m_ControlsChangedEvent:
     m_PersistentCalls:
       m_Calls: []
-  m_ActionEvents: []
+  m_ActionEvents:
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 322980198}
+        m_TargetAssemblyTypeName: Managers.CameraManager, Assembly-CSharp
+        m_MethodName: UpdateBoardCamera
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: f5422fbb-3f3f-4ebf-852d-16f81064f63e
+    m_ActionName: Play/Camera Change[/Mouse/scroll/down,/Mouse/scroll/up]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 2a8ec1e6-78e6-4f8e-8a39-5f896d9074b3
+    m_ActionName: Play/CameraMove[/Keyboard/w,/Keyboard/s,/Keyboard/a,/Keyboard/d]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 63dd0b94-ba48-444b-a504-761559bebf69
+    m_ActionName: Dialogue/Next Line[/Keyboard/space,/Mouse/leftButton]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: b758bf8a-0e93-46bf-b1fb-1d4633fb09f0
+    m_ActionName: Dialogue/Skip[/Keyboard/escape]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 81aa73e3-969c-4c9a-b373-3f20a2787490
+    m_ActionName: UI/New action
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
-  m_DefaultActionMap: 6b15fef9-324e-4d53-87a0-dd6b8f4302f1
+  m_DefaultActionMap: Play
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
 --- !u!1 &1089927910
@@ -1479,7 +1518,7 @@ Transform:
   m_GameObject: {fileID: 1089927910}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.508, y: 1.301, z: -2.744}
+  m_LocalPosition: {x: -2.868, y: 1.301, z: 2.663}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1726,8 +1765,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1420343490}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.00767321, y: 0.94854254, z: -0.31571603, w: 0.0230549}
-  m_LocalPosition: {x: -0.1977191, y: 3.0466914, z: 4.0649242}
+  m_LocalRotation: {x: 0.70090926, y: 1.0135899e-14, z: -9.96052e-15, w: 0.71325046}
+  m_LocalPosition: {x: -5.515081, y: 1.6642051, z: 4.3412533}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1752,8 +1791,8 @@ MonoBehaviour:
   m_StreamingVersion: 20170927
   m_Priority: 10
   m_StandbyUpdate: 2
-  m_LookAt: {fileID: 0}
-  m_Follow: {fileID: 0}
+  m_LookAt: {fileID: 1089927911}
+  m_Follow: {fileID: 1089927911}
   m_Lens:
     FieldOfView: 60.000004
     OrthographicSize: 5
@@ -1799,7 +1838,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: cffb2c21e61fa42c9b478296fd62d6ba,
         type: 3}
       propertyPath: m_LocalRotation.w
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: cffb2c21e61fa42c9b478296fd62d6ba,
         type: 3}
@@ -1809,7 +1848,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: cffb2c21e61fa42c9b478296fd62d6ba,
         type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: cffb2c21e61fa42c9b478296fd62d6ba,
         type: 3}
@@ -1824,7 +1863,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: cffb2c21e61fa42c9b478296fd62d6ba,
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
+      value: 180
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: cffb2c21e61fa42c9b478296fd62d6ba,
         type: 3}
@@ -2104,7 +2143,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BindingMode: 1
-  m_FollowOffset: {x: 0, y: 0, z: -10}
+  m_FollowOffset: {x: 0, y: 1, z: -2}
   m_XDamping: 1
   m_YDamping: 1
   m_ZDamping: 1
@@ -2160,7 +2199,6 @@ SceneRoots:
   - {fileID: 1255698336}
   - {fileID: 1230768872}
   - {fileID: 12345036}
-  - {fileID: 941839277}
   - {fileID: 128219123}
   - {fileID: 1819024576}
   - {fileID: 593392807}

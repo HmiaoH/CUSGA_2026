@@ -3,7 +3,7 @@ using UnityEngine.Playables;
 namespace Frameworks
 {
     [System.Serializable]
-    public class CutsceneItem
+    public struct CutsceneItem
     {
         public string name;
         public PlayableDirector director;
