@@ -20,6 +20,10 @@ namespace Managers
         // 初始化全部设置为字典
         protected override void OnInit()
         {
+            if (cutscenes.Count == 0)
+            {
+                Debug.LogWarning("No cutscenes found");
+            }
             ListToDict();
         }
 

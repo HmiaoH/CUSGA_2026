@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Frameworks;
 using Cinemachine;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using Utils;
 
 namespace Managers
@@ -10,11 +11,17 @@ namespace Managers
 
     public class CameraManager : ManagerBase<CameraManager>
     {
+        [Header("相机存储")]
         [SerializeField] private List<CameraItem> camerasList = new List<CameraItem>();
         private Dictionary<string, CinemachineVirtualCamera> cameras =  new Dictionary<string, CinemachineVirtualCamera>();
 
         [SerializeField] private CinemachineVirtualCamera defaultCamera;
         private CinemachineVirtualCamera currentCamera;
+
+
+        [SerializeField] private float cameraMoveSpeed = 7f;
+
+
 
         // 初始化默认相机
         protected override void OnInit()
@@ -27,6 +34,27 @@ namespace Managers
             }
             currentCamera = defaultCamera;
             SetCameraPriority();
+        }
+
+        protected override void OnTick(float deltaTime)
+        {
+            base.OnTick(deltaTime);
+        }
+
+        public void UpdateBoardCamera(InputAction.CallbackContext context)
+        {
+            var scroll = context.ReadValue<float>();
+            if (scroll > 0)
+            {
+                SwitchCamera(Utils.CameraName.TOPDOWN);
+                Debug.Log("Switch Camera to " + Utils.CameraName.TOPDOWN);
+            }
+            else if (scroll < 0)
+            {
+                SwitchCamera(Utils.CameraName.TOPBEHIND);
+                Debug.Log("Switch Camera to " + Utils.CameraName.TOPBEHIND);
+
+            }
         }
 
         /// <summary>
@@ -62,5 +90,6 @@ namespace Managers
                 cameras[c.name] = c.virtualCamera;
             }
         }
+
     }
 }

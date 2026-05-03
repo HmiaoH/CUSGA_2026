@@ -91,7 +91,8 @@ namespace Managers
         /// </summary>
         private void EnterOpeningCutscene()
         {
-            CutsceneManager.Instance.PlayCutscene(Utils.CutsceneName.OPENING, null);
+            return;
+            // CutsceneManager.Instance.PlayCutscene(Utils.CutsceneName.OPENING, null);
         }
 
     }

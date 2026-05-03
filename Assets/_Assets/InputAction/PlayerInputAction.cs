@@ -126,7 +126,7 @@ public partial class @PlayerInputAction: IInputActionCollection2, IDisposable
                 {
                     ""name"": ""negative"",
                     ""id"": ""e5ba5fe5-9747-4d7d-8f43-2a8ee82897d4"",
-                    ""path"": ""<VirtualMouse>/scroll/down"",
+                    ""path"": ""<Mouse>/scroll/down"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
