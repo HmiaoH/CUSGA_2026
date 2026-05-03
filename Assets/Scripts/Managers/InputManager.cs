@@ -1,12 +1,10 @@
 using Frameworks;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace Managers
 {
     public class InputManager : ManagerBase<InputManager>
     {
-        [SerializeField] private PlayerInput playerInput; // component
         private PlayerInputAction playerInputAction; // class
 
         private Vector2 cameraMoveInputVector = Vector2.zero;
@@ -18,15 +16,23 @@ namespace Managers
         // 更新
         protected override void OnInit()
         {
-            playerInput =  GetComponent<PlayerInput>();
             playerInputAction = new PlayerInputAction();
+            playerInputAction.Enable();
+        }
+
+        protected override void OnShutdown()
+        {
+            playerInputAction?.Disable();
+            playerInputAction?.Dispose();
+            playerInputAction = null;
         }
 
         protected override void OnTick(float deltaTime)
         {
             cameraMoveInputVector = GetCameraMoveInputDirection();
             cameraMoveDirection = new Vector3(cameraMoveInputVector.x, 0, cameraMoveInputVector.y);
-            cameraMoveDirection.Normalize();
+            if (cameraMoveDirection != Vector3.zero)
+                cameraMoveDirection.Normalize();
         }
 
         /// <summary>
