@@ -9,6 +9,9 @@ namespace Gameplay
     {
         [Header("Board Link")]
         [SerializeField] private ChessboardController board;
+        [SerializeField] private BoardPieceTeam team = BoardPieceTeam.Player;
+        [SerializeField] private int maxHp = 6;
+        [SerializeField] private int attackPower = 1;
 
         [Header("Size")]
         [SerializeField] private float minimumHeightToWidthRatio = 1.4f;
@@ -26,16 +29,22 @@ namespace Gameplay
         private MeshFilter cachedMeshFilter;
         private Vector2Int currentCell = new Vector2Int(-1, -1);
         private bool registered;
+        private int currentHp;
 
         public Vector2Int CurrentCell => currentCell;
 
         public bool IsAnimating { get; private set; }
+
+        public BoardPieceTeam Team => team;
+
+        public bool IsAlive => currentHp > 0;
 
         private void Awake()
         {
             cachedRenderer = GetComponentInChildren<Renderer>();
             cachedMeshFilter = GetComponentInChildren<MeshFilter>();
             CacheModifiers();
+            currentHp = Mathf.Max(1, maxHp);
         }
 
         private void Start()
@@ -60,6 +69,23 @@ namespace Gameplay
         public void SetCurrentCell(Vector2Int cell)
         {
             currentCell = cell;
+        }
+
+        public void SetTeam(BoardPieceTeam newTeam)
+        {
+            team = newTeam;
+        }
+
+        public void SetStats(int hp, int attack)
+        {
+            maxHp = Mathf.Max(1, hp);
+            currentHp = maxHp;
+            attackPower = Mathf.Max(1, attack);
+        }
+
+        public void OverrideHeightRatio(float ratio)
+        {
+            minimumHeightToWidthRatio = Mathf.Max(1f, ratio);
         }
 
         public void SnapToNearestCell()
@@ -143,23 +169,44 @@ namespace Gameplay
 
             if (actionType == BoardActionType.Move)
             {
-                AddTargetIfValid(targets, currentCell + Vector2Int.up, true);
-                AddTargetIfValid(targets, currentCell + Vector2Int.down, true);
-                AddTargetIfValid(targets, currentCell + Vector2Int.left, true);
-                AddTargetIfValid(targets, currentCell + Vector2Int.right, true);
+                int moveRange = board.GetRangeForAction(actionType, this);
+                for (int x = -moveRange; x <= moveRange; x++)
+                {
+                    for (int y = -moveRange; y <= moveRange; y++)
+                    {
+                        int manhattanDistance = Mathf.Abs(x) + Mathf.Abs(y);
+                        if (manhattanDistance == 0 || manhattanDistance > moveRange)
+                        {
+                            continue;
+                        }
+
+                        AddTargetIfValid(targets, currentCell + new Vector2Int(x, y), true);
+                    }
+                }
             }
             else if (actionType == BoardActionType.Attack)
             {
-                for (int x = -1; x <= 1; x++)
+                int attackRange = board.GetRangeForAction(actionType, this);
+                for (int x = -attackRange; x <= attackRange; x++)
                 {
-                    for (int y = -1; y <= 1; y++)
+                    for (int y = -attackRange; y <= attackRange; y++)
                     {
                         if (x == 0 && y == 0)
                         {
                             continue;
                         }
 
-                        AddTargetIfValid(targets, currentCell + new Vector2Int(x, y), false);
+                        Vector2Int attackCell = currentCell + new Vector2Int(x, y);
+                        if (!board.IsInsideBoard(attackCell))
+                        {
+                            continue;
+                        }
+
+                        BoardPieceController targetPiece = board.GetPieceAtCell(attackCell);
+                        if (targetPiece != null && targetPiece.Team != team)
+                        {
+                            targets.Add(attackCell);
+                        }
                     }
                 }
             }
@@ -221,7 +268,8 @@ namespace Gameplay
                 BoardActionType.Move,
                 currentCell,
                 targetCell,
-                board.GetPieceAtCell(targetCell));
+                board.GetPieceAtCell(targetCell),
+                0);
 
             StartCoroutine(MoveRoutine(context));
             return true;
@@ -235,7 +283,8 @@ namespace Gameplay
                 BoardActionType.Attack,
                 currentCell,
                 targetCell,
-                board.GetPieceAtCell(targetCell));
+                board.GetPieceAtCell(targetCell),
+                board.GetPowerForAction(BoardActionType.Attack));
 
             StartCoroutine(AttackRoutine(context));
             return true;
@@ -297,6 +346,7 @@ namespace Gameplay
 
             if (context.TargetPiece != null)
             {
+                context.TargetPiece.ReceiveDamage(context.Power);
                 context.TargetPiece.PlayHitReaction();
             }
 
@@ -364,6 +414,112 @@ namespace Gameplay
             }
 
             targets.Add(cell);
+        }
+
+        public void ReceiveDamage(int damage)
+        {
+            currentHp -= Mathf.Max(0, damage);
+            if (currentHp > 0)
+            {
+                return;
+            }
+
+            currentHp = 0;
+            if (board != null)
+            {
+                board.RemovePiece(this);
+            }
+
+            gameObject.SetActive(false);
+        }
+
+        public List<Vector2Int> GetThreatenedCells()
+        {
+            List<Vector2Int> threatCells = new List<Vector2Int>();
+            if (board == null || !board.IsInsideBoard(currentCell))
+            {
+                return threatCells;
+            }
+
+            for (int x = -1; x <= 1; x++)
+            {
+                for (int y = -1; y <= 1; y++)
+                {
+                    if (x == 0 && y == 0)
+                    {
+                        continue;
+                    }
+
+                    Vector2Int cell = currentCell + new Vector2Int(x, y);
+                    if (board.IsInsideBoard(cell))
+                    {
+                        threatCells.Add(cell);
+                    }
+                }
+            }
+
+            return threatCells;
+        }
+
+        public bool TryPerformEnemyAttack(BoardPieceController playerPiece)
+        {
+            if (playerPiece == null || !playerPiece.IsAlive)
+            {
+                return false;
+            }
+
+            if (Mathf.Abs(playerPiece.CurrentCell.x - currentCell.x) > 1 ||
+                Mathf.Abs(playerPiece.CurrentCell.y - currentCell.y) > 1)
+            {
+                return false;
+            }
+
+            playerPiece.ReceiveDamage(attackPower);
+            playerPiece.PlayHitReaction();
+            return true;
+        }
+
+        public bool TryPerformEnemyMoveTowards(Vector2Int targetCell)
+        {
+            if (board == null)
+            {
+                return false;
+            }
+
+            Vector2Int bestCell = currentCell;
+            float bestDistance = float.MaxValue;
+            Vector2Int[] directions =
+            {
+                Vector2Int.up,
+                Vector2Int.down,
+                Vector2Int.left,
+                Vector2Int.right
+            };
+
+            for (int i = 0; i < directions.Length; i++)
+            {
+                Vector2Int candidate = currentCell + directions[i];
+                if (!board.IsCellWalkable(this, candidate))
+                {
+                    continue;
+                }
+
+                float distance = Vector2Int.Distance(candidate, targetCell);
+                if (distance < bestDistance)
+                {
+                    bestDistance = distance;
+                    bestCell = candidate;
+                }
+            }
+
+            if (bestCell == currentCell)
+            {
+                return false;
+            }
+
+            board.PlacePiece(this, bestCell, true);
+            currentCell = bestCell;
+            return true;
         }
 
         private void CacheModifiers()

@@ -10,7 +10,8 @@ namespace Gameplay
             BoardActionType actionType,
             Vector2Int originCell,
             Vector2Int targetCell,
-            BoardPieceController targetPiece)
+            BoardPieceController targetPiece,
+            int power)
         {
             Board = board;
             SourcePiece = sourcePiece;
@@ -18,6 +19,7 @@ namespace Gameplay
             OriginCell = originCell;
             TargetCell = targetCell;
             TargetPiece = targetPiece;
+            Power = power;
         }
 
         public ChessboardController Board { get; }
@@ -31,5 +33,7 @@ namespace Gameplay
         public Vector2Int TargetCell { get; }
 
         public BoardPieceController TargetPiece { get; }
+
+        public int Power { get; }
     }
 }

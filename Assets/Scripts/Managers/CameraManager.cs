@@ -16,6 +16,8 @@ namespace Managers
         [SerializeField] private string defaultCameraName;
         private CameraItem currentCamera;
 
+        public string CurrentCameraName => currentCamera != null ? currentCamera.name : string.Empty;
+
 
         // 初始化默认相机
         protected override void OnInit()

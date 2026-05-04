@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 578a3b2a57e3a48adaefb9b655d0ad12, type: 3}
+  m_Name: Card_1_1_0_BluntStrike
+  m_EditorClassIdentifier: 
+  cardId: 1.1.0
+  displayName: "\u949D\u51FB"
+  rulesText: "\u9020\u6210 3 \u70B9\u4F24\u5BB3"
+  flavorText: "\u7A33\u5B9A\uFF0C\u4F46\u5E76\u4E0D\u4F18\u96C5\u3002"
+  category: 1
+  rarity: 0
+  primaryEffect: 2
+  targetingMode: 3
+  keywords: 0
+  cost: 0
+  damage: 3
+  hitCount: 1
+  cardDraw: 0
+  vitalityGain: 0
+  energyGain: 0
+  knockbackDistance: 0
+  movementAmount: 0
+  movementPattern: 0
+  artwork: {fileID: -5177388603050735206, guid: 71ebafeef3c03457483266a33ab2b270,
+    type: 3}
+  accentColor: {r: 0.82, g: 0.35, b: 0.3, a: 1}

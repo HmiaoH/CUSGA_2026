@@ -36,6 +36,7 @@ namespace Gameplay
         private readonly Dictionary<Vector2Int, Renderer> cellHighlights = new Dictionary<Vector2Int, Renderer>();
         private readonly Dictionary<Vector2Int, BoardPieceController> occupiedPieces = new Dictionary<Vector2Int, BoardPieceController>();
         private readonly HashSet<Vector2Int> previewCells = new HashSet<Vector2Int>();
+        private readonly HashSet<Vector2Int> threatCells = new HashSet<Vector2Int>();
 
         private Transform highlightRoot;
         private Transform gridLineRoot;
@@ -44,6 +45,9 @@ namespace Gameplay
         private Bounds boardBounds;
         private BoardActionType armedAction = BoardActionType.None;
         private bool initialized;
+        private CardDefinition pendingCardDefinition;
+        private BoardActionType pendingCardActionType = BoardActionType.None;
+        private Color threatHighlightColor = new Color(1f, 0.4f, 0.15f, 0.35f);
 
         public int GridSize => gridSize;
 
@@ -56,6 +60,8 @@ namespace Gameplay
         public float PieceFootprintRatio => pieceFootprintRatio;
 
         public float BoardTopY => boardBounds.max.y;
+
+        public BoardPieceController ControlledPiece => controlledPiece;
 
         private void Awake()
         {
@@ -321,11 +327,122 @@ namespace Gameplay
 
             previewCells.Clear();
             armedAction = BoardActionType.None;
+            pendingCardDefinition = null;
+            pendingCardActionType = BoardActionType.None;
+            ReapplyThreatPreview();
         }
 
         public bool IsPreviewCell(Vector2Int cell)
         {
             return previewCells.Contains(cell);
+        }
+
+        public void ShowThreatPreview(List<Vector2Int> cells)
+        {
+            threatCells.Clear();
+
+            for (int i = 0; i < cells.Count; i++)
+            {
+                if (!IsInsideBoard(cells[i]))
+                {
+                    continue;
+                }
+
+                threatCells.Add(cells[i]);
+            }
+
+            ReapplyThreatPreview();
+        }
+
+        public void ClearThreatPreview()
+        {
+            threatCells.Clear();
+            ReapplyThreatPreview();
+        }
+
+        public bool BeginActionPreview(BoardActionType actionType)
+        {
+            if (controlledPiece == null || controlledPiece.IsAnimating)
+            {
+                return false;
+            }
+
+            List<Vector2Int> targets = controlledPiece.GetActionTargets(actionType);
+            ShowPreview(actionType, targets);
+            armedAction = targets.Count > 0 ? actionType : BoardActionType.None;
+            pendingCardDefinition = null;
+            pendingCardActionType = actionType;
+            return armedAction != BoardActionType.None;
+        }
+
+        public bool BeginCardActionPreview(CardDefinition definition)
+        {
+            if (definition == null)
+            {
+                return false;
+            }
+
+            BoardActionType actionType;
+            switch (definition.Category)
+            {
+                case CardCategory.Move:
+                    actionType = BoardActionType.Move;
+                    break;
+                case CardCategory.Damage:
+                    actionType = BoardActionType.Attack;
+                    break;
+                default:
+                    return false;
+            }
+
+            pendingCardDefinition = definition;
+            pendingCardActionType = actionType;
+
+            if (controlledPiece == null || controlledPiece.IsAnimating)
+            {
+                return false;
+            }
+
+            List<Vector2Int> targets = controlledPiece.GetActionTargets(actionType);
+            ShowPreview(actionType, targets);
+            armedAction = targets.Count > 0 ? actionType : BoardActionType.None;
+            pendingCardDefinition = definition;
+            pendingCardActionType = actionType;
+            return armedAction != BoardActionType.None;
+        }
+
+        public int GetRangeForAction(BoardActionType actionType, BoardPieceController actingPiece)
+        {
+            if (pendingCardDefinition == null || pendingCardActionType != actionType)
+            {
+                return 1;
+            }
+
+            switch (actionType)
+            {
+                case BoardActionType.Move:
+                    return Mathf.Max(1, pendingCardDefinition.MovementAmount);
+                case BoardActionType.Attack:
+                    return 1;
+                default:
+                    return 1;
+            }
+        }
+
+        public int GetPowerForAction(BoardActionType actionType)
+        {
+            if (pendingCardDefinition == null || pendingCardActionType != actionType)
+            {
+                return 1;
+            }
+
+            switch (actionType)
+            {
+                case BoardActionType.Attack:
+                    return Mathf.Max(1, pendingCardDefinition.Damage * pendingCardDefinition.HitCount);
+                default:
+                    return 1;
+            }
         }
 
         private void HandleInput()
@@ -376,9 +493,39 @@ namespace Gameplay
 
         private void ArmAction(BoardActionType actionType)
         {
-            List<Vector2Int> targets = controlledPiece.GetActionTargets(actionType);
-            ShowPreview(actionType, targets);
-            armedAction = targets.Count > 0 ? actionType : BoardActionType.None;
+            BeginActionPreview(actionType);
+        }
+
+        private void ReapplyThreatPreview()
+        {
+            foreach (KeyValuePair<Vector2Int, Renderer> pair in cellHighlights)
+            {
+                Renderer renderer = pair.Value;
+                if (renderer == null)
+                {
+                    continue;
+                }
+
+                bool isPlayerPreview = previewCells.Contains(pair.Key);
+                bool isThreat = threatCells.Contains(pair.Key);
+
+                if (!isPlayerPreview && !isThreat)
+                {
+                    renderer.enabled = false;
+                    continue;
+                }
+
+                renderer.enabled = true;
+                if (isPlayerPreview)
+                {
+                    Color previewColor = armedAction == BoardActionType.Attack ? attackHighlightColor : moveHighlightColor;
+                    renderer.SetPropertyBlock(CreateColorPropertyBlock(previewColor));
+                }
+                else
+                {
+                    renderer.SetPropertyBlock(CreateColorPropertyBlock(threatHighlightColor));
+                }
+            }
         }
 
         private void RecalculateBoardBounds()
