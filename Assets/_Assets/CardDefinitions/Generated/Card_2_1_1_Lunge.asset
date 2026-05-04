@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 578a3b2a57e3a48adaefb9b655d0ad12, type: 3}
+  m_Name: Card_2_1_1_Lunge
+  m_EditorClassIdentifier: 
+  cardId: 2.1.1
+  displayName: "\u7A7F\u523A\u51B2\u950B"
+  rulesText: "\u76F4\u7EBF\u79FB\u52A8 3 \u683C\n\u82E5\u8DEF\u5F84\u7EC8\u70B9\u4E3A\u654C\u4EBA\uFF0C\u5219\u89E6\u53D1\u3010\u51B2\u950B\u3011"
+  flavorText: "\u901F\u5EA6\u672C\u8EAB\u5C31\u662F\u4E00\u79CD\u6B66\u5668\u3002"
+  category: 2
+  rarity: 0
+  primaryEffect: 5
+  targetingMode: 2
+  keywords: 33
+  cost: 1
+  damage: 0
+  hitCount: 1
+  cardDraw: 0
+  vitalityGain: 0
+  energyGain: 0
+  knockbackDistance: 0
+  movementAmount: 3
+  movementPattern: 1
+  artwork: {fileID: -5177388603050735206, guid: 71ebafeef3c03457483266a33ab2b270,
+    type: 3}
+  accentColor: {r: 0.22, g: 0.83, b: 0.56, a: 1}

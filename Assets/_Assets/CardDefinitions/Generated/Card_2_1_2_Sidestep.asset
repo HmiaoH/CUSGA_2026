@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 578a3b2a57e3a48adaefb9b655d0ad12, type: 3}
+  m_Name: Card_2_1_2_Sidestep
+  m_EditorClassIdentifier: 
+  cardId: 2.1.2
+  displayName: "\u6E38\u79FB\u84C4\u52BF"
+  rulesText: "\u4EFB\u610F\u79FB\u52A8 2 \u683C\uFF0C\u83B7\u5F97 1 \u70B9\u6D3B\u529B"
+  flavorText: "\u5B83\u4E0D\u50CF\u51B2\u950B\u90A3\u6837\u663E\u773C\uFF0C\u4F46\u4F1A\u8BA9\u540E\u7EED\u7684\u653B\u51FB\u66F4\u91CD\u3002"
+  category: 2
+  rarity: 0
+  primaryEffect: 7
+  targetingMode: 2
+  keywords: 66
+  cost: 1
+  damage: 0
+  hitCount: 1
+  cardDraw: 0
+  vitalityGain: 1
+  energyGain: 0
+  knockbackDistance: 0
+  movementAmount: 2
+  movementPattern: 2
+  artwork: {fileID: -5177388603050735206, guid: 71ebafeef3c03457483266a33ab2b270,
+    type: 3}
+  accentColor: {r: 0.42, g: 0.86, b: 0.67, a: 1}
