@@ -10,6 +10,20 @@ public class CameraModeVisibilityController : MonoBehaviour
 
     private bool lastVisibleState = true;
 
+    public void Configure(
+        List<GameObject> targetObjects,
+        List<string> cameraNames,
+        bool hideWhenUnavailable)
+    {
+        targets = targetObjects != null ? targetObjects : new List<GameObject>();
+        visibleCameraNames = cameraNames != null ? cameraNames : new List<string>();
+        hideWhenCameraManagerUnavailable = hideWhenUnavailable;
+
+        bool shouldShow = ResolveVisibility();
+        lastVisibleState = shouldShow;
+        ApplyVisibility(shouldShow);
+    }
+
     private void OnEnable()
     {
         bool shouldShow = ResolveVisibility();

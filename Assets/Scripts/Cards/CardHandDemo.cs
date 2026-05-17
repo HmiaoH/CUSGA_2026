@@ -14,6 +14,18 @@ public class CardHandDemo : MonoBehaviour
 
     private readonly List<CardView> spawnedCards = new List<CardView>();
 
+    public void Configure(
+        CardView prefab,
+        RectTransform root,
+        List<CardDefinition> cards,
+        bool shouldRebuildOnStart)
+    {
+        cardPrefab = prefab;
+        handRoot = root;
+        demoCards = cards != null ? cards : new List<CardDefinition>();
+        rebuildOnStart = shouldRebuildOnStart;
+    }
+
     private void Start()
     {
         if (rebuildOnStart)
@@ -45,13 +57,16 @@ public class CardHandDemo : MonoBehaviour
             var instance = Instantiate(cardPrefab, handRoot);
             instance.Bind(definition);
 
-            // 演示模式下自动补齐拖拽出牌组件，减少手动挂脚本成本。
-            if (instance.GetComponent<CardDragPlayHandler>() == null)
-            {
-                instance.gameObject.AddComponent<CardDragPlayHandler>();
-            }
-
+            EnsureDragHandler(instance);
             spawnedCards.Add(instance);
+        }
+    }
+
+    private static void EnsureDragHandler(CardView instance)
+    {
+        if (instance != null && instance.GetComponent<CardDragPlayHandler>() == null)
+        {
+            instance.gameObject.AddComponent<CardDragPlayHandler>();
         }
     }
 

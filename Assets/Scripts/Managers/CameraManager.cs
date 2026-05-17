@@ -18,6 +18,15 @@ namespace Managers
 
         public string CurrentCameraName => currentCamera != null ? currentCamera.name : string.Empty;
 
+        public bool TryGetCameraItem(string cameraName, out CameraItem cameraItem)
+        {
+            if (cameras.Count == 0)
+            {
+                ListToDictionary();
+            }
+
+            return cameras.TryGetValue(cameraName, out cameraItem);
+        }
 
         // 初始化默认相机
         protected override void OnInit()

@@ -21,6 +21,28 @@ public class CardHandLayout : MonoBehaviour
 
     private readonly List<RectTransform> cachedCards = new List<RectTransform>();
 
+    public void Configure(
+        RectTransform targetLayoutRect,
+        float targetPreferredCardSpacing,
+        float targetMinimumCardSpacing,
+        float targetHorizontalPadding,
+        float targetArcHeight,
+        float targetMaxRotation,
+        float targetAnimationSpeed,
+        float targetHoverPushDistance,
+        float targetHoverRaiseAmount)
+    {
+        layoutRect = targetLayoutRect;
+        preferredCardSpacing = targetPreferredCardSpacing;
+        minimumCardSpacing = targetMinimumCardSpacing;
+        horizontalPadding = targetHorizontalPadding;
+        arcHeight = targetArcHeight;
+        maxRotation = targetMaxRotation;
+        animationSpeed = targetAnimationSpeed;
+        hoverPushDistance = targetHoverPushDistance;
+        hoverRaiseAmount = targetHoverRaiseAmount;
+    }
+
     private void Awake()
     {
         if (layoutRect == null)

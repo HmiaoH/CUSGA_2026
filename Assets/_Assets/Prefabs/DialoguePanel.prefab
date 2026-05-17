@@ -170,7 +170,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 426.04846, y: -258.27}
+  m_AnchoredPosition: {x: 0, y: -230}
   m_SizeDelta: {x: 228.9031, y: 58.46}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7992630821194347740
@@ -481,10 +481,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   panel: {fileID: 5893103782048933238}
-  speakerNameText: {fileID: 4809393311982365330}
-  dialogueText: {fileID: 2471614587978067425}
-  nextButton: {fileID: 7869432398325225532}
-  typeSpeed: 0.02
+  speakerText: {fileID: 4809393311982365330}
+  contentText: {fileID: 2471614587978067425}
+  continueButton: {fileID: 7869432398325225532}
 --- !u!1 &8396774035980223568
 GameObject:
   m_ObjectHideFlags: 0

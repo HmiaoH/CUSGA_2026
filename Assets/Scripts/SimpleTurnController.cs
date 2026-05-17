@@ -11,6 +11,7 @@ public class SimpleTurnController : MonoBehaviour
     [SerializeField] private ChessboardController chessboard;
     [SerializeField] private BoardPieceController playerPiece;
     [SerializeField] private Button endTurnButton;
+    [SerializeField] private Transform gameplayUiRoot;
 
     [Header("Enemy Setup")]
     [SerializeField] private int enemyCount = 3;
@@ -21,6 +22,8 @@ public class SimpleTurnController : MonoBehaviour
 
     [Header("Turn UI")]
     [SerializeField] private string endTurnButtonText = "End Turn";
+    [SerializeField] private string endTurnButtonObjectName = "EndTurnButton";
+    [SerializeField] private bool autoFindEndTurnButtonByName = true;
 
     private readonly List<BoardPieceController> enemies = new List<BoardPieceController>();
     private bool enemyTurnRunning;
@@ -46,11 +49,15 @@ public class SimpleTurnController : MonoBehaviour
     {
         if (endTurnButton == null)
         {
-            endTurnButton = FindObjectOfType<Button>();
+            endTurnButton = FindEndTurnButton();
         }
 
         if (endTurnButton == null)
         {
+            Debug.LogWarning(
+                "SimpleTurnController: End turn button is not assigned. " +
+                "Create a dedicated gameplay button named '" + endTurnButtonObjectName + "' or assign it in the Inspector.",
+                this);
             return;
         }
 
@@ -62,6 +69,65 @@ public class SimpleTurnController : MonoBehaviour
         {
             buttonText.text = endTurnButtonText;
         }
+    }
+
+    private Button FindEndTurnButton()
+    {
+        Button localButton = GetComponentInChildren<Button>(true);
+        if (IsValidEndTurnButton(localButton))
+        {
+            return localButton;
+        }
+
+        if (gameplayUiRoot != null)
+        {
+            Button[] scopedButtons = gameplayUiRoot.GetComponentsInChildren<Button>(true);
+            for (int i = 0; i < scopedButtons.Length; i++)
+            {
+                if (IsValidEndTurnButton(scopedButtons[i]))
+                {
+                    return scopedButtons[i];
+                }
+            }
+        }
+
+        if (!autoFindEndTurnButtonByName)
+        {
+            return null;
+        }
+
+        Button[] buttons = FindObjectsOfType<Button>(true);
+        for (int i = 0; i < buttons.Length; i++)
+        {
+            if (IsValidEndTurnButton(buttons[i]))
+            {
+                return buttons[i];
+            }
+        }
+
+        return null;
+    }
+
+    private bool IsValidEndTurnButton(Button button)
+    {
+        if (button == null || button.GetComponentInParent<DialoguePanel>(true) != null)
+        {
+            return false;
+        }
+
+        string objectName = button.gameObject.name;
+        return string.Equals(objectName, endTurnButtonObjectName, System.StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(NormalizeButtonName(objectName), NormalizeButtonName(endTurnButtonText), System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string NormalizeButtonName(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return string.Empty;
+        }
+
+        return value.Replace(" ", string.Empty).Replace("_", string.Empty).Replace("-", string.Empty);
     }
 
     private void SpawnEnemies()

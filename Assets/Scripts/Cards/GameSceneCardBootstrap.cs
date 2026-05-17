@@ -2,6 +2,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Utils;
+using Cinemachine;
+using Managers;
+using Frameworks;
 
 /// <summary>
 /// 为 GameScene 运行时搭建一套与 SampleScene 等效的世界空间卡牌界面。
@@ -10,7 +13,8 @@ using Utils;
 public class GameSceneCardBootstrap : MonoBehaviour
 {
     [Header("Core References")]
-    [SerializeField] private Camera targetCamera;
+    [SerializeField] private CinemachineVirtualCamera targetCamera;
+    [SerializeField] private Camera eventCamera;
     [SerializeField] private CardView handCardPrefab;
     [SerializeField] private GameObject worldCardPrefab;
     [SerializeField] private Transform worldCardsParent;
@@ -26,6 +30,12 @@ public class GameSceneCardBootstrap : MonoBehaviour
     [SerializeField] private Vector2 handCanvasSize = new Vector2(1037f, 670.5f);
     [SerializeField] private Vector2 handRootAnchoredPosition = new Vector2(0f, -215f);
     [SerializeField] private Vector2 handRootSize = new Vector2(100f, 100f);
+
+    [Header("Camera Follow")]
+    [SerializeField] private string followCameraName = CameraName.TOPBEHIND;
+    [SerializeField] private Vector3 cameraRigPositionOffset;
+    [SerializeField] private Vector3 cameraRigEulerOffset;
+    [SerializeField] private bool followCameraRotation = true;
 
     [Header("Camera Mode Visibility")]
     [SerializeField] private bool showCardsOnlyInTopBehind = true;
@@ -71,12 +81,14 @@ public class GameSceneCardBootstrap : MonoBehaviour
         }
 
         Transform runtimeRoot = GetOrCreateRuntimeRoot();
-        Transform cameraRig = GetOrCreateCameraRig();
+        Transform cameraRig = GetOrCreateCameraRig(runtimeRoot);
+        ConfigureCameraRigFollower(cameraRig);
 
         if (rebuildIfAlreadyBuilt)
         {
-            ClearRuntimeRoot(runtimeRoot);
+            ClearRuntimeRoot(runtimeRoot, CameraRigName);
             ClearRuntimeRoot(cameraRig);
+            ConfigureCameraRigFollower(cameraRig);
         }
 
         Transform canvasTransform = FindChild(cameraRig, HandCanvasName);
@@ -84,11 +96,19 @@ public class GameSceneCardBootstrap : MonoBehaviour
         {
             canvasTransform = CreateHandCanvas(cameraRig).transform;
         }
+        else
+        {
+            ConfigureHandCanvas(canvasTransform.gameObject);
+        }
 
         RectTransform handRoot = FindChild(canvasTransform, HandRootName) as RectTransform;
         if (handRoot == null)
         {
             handRoot = CreateHandRoot(canvasTransform).GetComponent<RectTransform>();
+        }
+        else
+        {
+            ConfigureHandRoot(handRoot);
         }
 
         CardHandLayout handLayout = handRoot.GetComponent<CardHandLayout>();
@@ -123,10 +143,42 @@ public class GameSceneCardBootstrap : MonoBehaviour
 
     private void ResolveReferences()
     {
-        if (targetCamera == null)
+        if (eventCamera == null)
         {
-            targetCamera = Camera.main;
+            eventCamera = ResolveEventCamera();
         }
+
+        if (targetCamera != null && IsFollowCamera(targetCamera))
+        {
+            return;
+        }
+
+        if (CameraManager.Instance != null &&
+            CameraManager.Instance.TryGetCameraItem(followCameraName, out CameraItem cameraItem) &&
+            cameraItem != null &&
+            cameraItem.camera != null)
+        {
+            targetCamera = cameraItem.camera;
+            return;
+        }
+
+        CinemachineVirtualCamera[] virtualCameras = UnityEngine.Object.FindObjectsOfType<CinemachineVirtualCamera>(true);
+        for (int i = 0; i < virtualCameras.Length; i++)
+        {
+            CinemachineVirtualCamera virtualCamera = virtualCameras[i];
+            if (virtualCamera != null && IsFollowCamera(virtualCamera))
+            {
+                targetCamera = virtualCamera;
+                return;
+            }
+        }
+    }
+
+    private bool IsFollowCamera(CinemachineVirtualCamera virtualCamera)
+    {
+        return virtualCamera != null &&
+               !string.IsNullOrEmpty(followCameraName) &&
+               virtualCamera.name.Contains(followCameraName);
     }
 
     private Transform GetOrCreateRuntimeRoot()
@@ -142,27 +194,65 @@ public class GameSceneCardBootstrap : MonoBehaviour
         return root.transform;
     }
 
-    private Transform GetOrCreateCameraRig()
+    private Transform GetOrCreateCameraRig(Transform runtimeRoot)
     {
-        Transform existing = targetCamera.transform.Find(CameraRigName);
+        Transform existing = FindChild(runtimeRoot, CameraRigName);
         if (existing != null)
         {
             return existing;
         }
 
+        if (targetCamera != null)
+        {
+            existing = targetCamera.transform.Find(CameraRigName);
+            if (existing != null)
+            {
+                existing.SetParent(runtimeRoot, true);
+                return existing;
+            }
+        }
+
         GameObject rig = new GameObject(CameraRigName);
-        rig.transform.SetParent(targetCamera.transform, false);
-        rig.transform.localPosition = Vector3.zero;
-        rig.transform.localRotation = Quaternion.identity;
+        rig.transform.SetParent(runtimeRoot, true);
+        if (targetCamera != null)
+        {
+            rig.transform.position = targetCamera.transform.position;
+            rig.transform.rotation = targetCamera.transform.rotation;
+        }
         rig.transform.localScale = Vector3.one;
         return rig.transform;
     }
 
-    private static void ClearRuntimeRoot(Transform runtimeRoot)
+    private void ConfigureCameraRigFollower(Transform cameraRig)
+    {
+        if (cameraRig == null || targetCamera == null)
+        {
+            return;
+        }
+
+        CardCameraRigFollower follower = cameraRig.GetComponent<CardCameraRigFollower>();
+        if (follower == null)
+        {
+            follower = cameraRig.gameObject.AddComponent<CardCameraRigFollower>();
+        }
+
+        follower.Configure(
+            targetCamera,
+            cameraRigPositionOffset,
+            cameraRigEulerOffset,
+            followCameraRotation);
+    }
+
+    private static void ClearRuntimeRoot(Transform runtimeRoot, string preservedChildName = null)
     {
         for (int i = runtimeRoot.childCount - 1; i >= 0; i--)
         {
             GameObject child = runtimeRoot.GetChild(i).gameObject;
+            if (!string.IsNullOrEmpty(preservedChildName) && child.name == preservedChildName)
+            {
+                continue;
+            }
+
             if (Application.isPlaying)
             {
                 Object.Destroy(child);
@@ -185,20 +275,64 @@ public class GameSceneCardBootstrap : MonoBehaviour
 
         canvasObject.transform.SetParent(runtimeRoot, false);
 
-        RectTransform rectTransform = canvasObject.GetComponent<RectTransform>();
-        rectTransform.localPosition = handCanvasLocalPosition;
-        rectTransform.localEulerAngles = handCanvasLocalEuler;
-        rectTransform.localScale = handCanvasLocalScale;
-        rectTransform.sizeDelta = handCanvasSize;
-
-        Canvas canvas = canvasObject.GetComponent<Canvas>();
-        canvas.renderMode = RenderMode.WorldSpace;
-        canvas.worldCamera = targetCamera;
-
-        CanvasScaler scaler = canvasObject.GetComponent<CanvasScaler>();
-        scaler.dynamicPixelsPerUnit = 1f;
+        ConfigureHandCanvas(canvasObject);
 
         return canvasObject;
+    }
+
+    private void ConfigureHandCanvas(GameObject canvasObject)
+    {
+        RectTransform rectTransform = canvasObject.GetComponent<RectTransform>();
+        if (rectTransform != null)
+        {
+            rectTransform.localPosition = handCanvasLocalPosition;
+            rectTransform.localEulerAngles = handCanvasLocalEuler;
+            rectTransform.localScale = handCanvasLocalScale;
+            rectTransform.sizeDelta = handCanvasSize;
+        }
+
+        Canvas canvas = canvasObject.GetComponent<Canvas>();
+        if (canvas != null)
+        {
+            canvas.renderMode = RenderMode.WorldSpace;
+            canvas.worldCamera = eventCamera != null ? eventCamera : ResolveEventCamera();
+        }
+
+        CanvasScaler scaler = canvasObject.GetComponent<CanvasScaler>();
+        if (scaler != null)
+        {
+            scaler.dynamicPixelsPerUnit = 1f;
+        }
+    }
+
+    private static Camera ResolveEventCamera()
+    {
+        Camera mainCamera = Camera.main;
+        if (mainCamera != null)
+        {
+            return mainCamera;
+        }
+
+        Camera[] cameras = UnityEngine.Object.FindObjectsOfType<Camera>(true);
+        for (int i = 0; i < cameras.Length; i++)
+        {
+            Camera camera = cameras[i];
+            if (camera != null && camera.name == "Main Camera")
+            {
+                return camera;
+            }
+        }
+
+        for (int i = 0; i < cameras.Length; i++)
+        {
+            Camera camera = cameras[i];
+            if (camera != null && camera.isActiveAndEnabled)
+            {
+                return camera;
+            }
+        }
+
+        return cameras.Length > 0 ? cameras[0] : null;
     }
 
     private GameObject CreateHandRoot(Transform canvasTransform)
@@ -211,14 +345,23 @@ public class GameSceneCardBootstrap : MonoBehaviour
 
         handRootObject.transform.SetParent(canvasTransform, false);
 
-        RectTransform rectTransform = handRootObject.GetComponent<RectTransform>();
+        ConfigureHandRoot(handRootObject.GetComponent<RectTransform>());
+
+        return handRootObject;
+    }
+
+    private void ConfigureHandRoot(RectTransform rectTransform)
+    {
+        if (rectTransform == null)
+        {
+            return;
+        }
+
         rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
         rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
         rectTransform.pivot = new Vector2(0.5f, 0.5f);
         rectTransform.anchoredPosition = handRootAnchoredPosition;
         rectTransform.sizeDelta = handRootSize;
-
-        return handRootObject;
     }
 
     private GameObject CreateWorldCardsRoot(Transform runtimeRoot)
@@ -241,23 +384,21 @@ public class GameSceneCardBootstrap : MonoBehaviour
 
     private void ApplyLayoutSettings(CardHandLayout layout, RectTransform handRoot)
     {
-        SetPrivateField(layout, "layoutRect", handRoot);
-        SetPrivateField(layout, "preferredCardSpacing", preferredCardSpacing);
-        SetPrivateField(layout, "minimumCardSpacing", minimumCardSpacing);
-        SetPrivateField(layout, "horizontalPadding", horizontalPadding);
-        SetPrivateField(layout, "arcHeight", arcHeight);
-        SetPrivateField(layout, "maxRotation", maxRotation);
-        SetPrivateField(layout, "animationSpeed", animationSpeed);
-        SetPrivateField(layout, "hoverPushDistance", hoverPushDistance);
-        SetPrivateField(layout, "hoverRaiseAmount", hoverRaiseAmount);
+        layout.Configure(
+            handRoot,
+            preferredCardSpacing,
+            minimumCardSpacing,
+            horizontalPadding,
+            arcHeight,
+            maxRotation,
+            animationSpeed,
+            hoverPushDistance,
+            hoverRaiseAmount);
     }
 
     private void ApplyDemoSettings(CardHandDemo demo, RectTransform handRoot)
     {
-        SetPrivateField(demo, "cardPrefab", handCardPrefab);
-        SetPrivateField(demo, "handRoot", handRoot);
-        SetPrivateField(demo, "demoCards", demoCards);
-        SetPrivateField(demo, "rebuildOnStart", true);
+        demo.Configure(handCardPrefab, handRoot, demoCards, true);
     }
 
     private void RetargetExistingDragHandlers(RectTransform handRoot)
@@ -267,13 +408,14 @@ public class GameSceneCardBootstrap : MonoBehaviour
         for (int i = 0; i < dragHandlers.Length; i++)
         {
             CardDragPlayHandler handler = dragHandlers[i];
-            SetPrivateField(handler, "tableCardPrefab", handCardPrefab);
-            SetPrivateField(handler, "worldCardPrefab", worldCardPrefab);
-            SetPrivateField(handler, "worldCardParent", worldCardsParent != null ? worldCardsParent.gameObject : null);
-            SetPrivateField(handler, "fixedTableAnchor", fixedTableAnchor != null ? fixedTableAnchor.gameObject : null);
-            SetPrivateField(handler, "fixedWorldPosition", fixedTableAnchor != null ? fixedTableAnchor.position : fallbackFixedWorldPosition);
-            SetPrivateField(handler, "playUseTravelAnimation", false);
-            SetPrivateField(handler, "worldCardScale", 0.003f);
+            handler.ConfigureTablePlacement(
+                handCardPrefab,
+                worldCardPrefab,
+                worldCardsParent != null ? worldCardsParent.gameObject : null,
+                fixedTableAnchor != null ? fixedTableAnchor.gameObject : null,
+                fixedTableAnchor != null ? fixedTableAnchor.position : fallbackFixedWorldPosition,
+                false,
+                0.003f);
         }
     }
 
@@ -291,9 +433,7 @@ public class GameSceneCardBootstrap : MonoBehaviour
             targets.Add(worldCardsObject);
         }
 
-        SetPrivateField(controller, "targets", targets);
-        SetPrivateField(controller, "visibleCameraNames", new List<string> { visibleCameraName });
-        SetPrivateField(controller, "hideWhenCameraManagerUnavailable", showCardsOnlyInTopBehind);
+        controller.Configure(targets, new List<string> { visibleCameraName }, showCardsOnlyInTopBehind);
     }
 
     private static void ClearExistingHandCards(RectTransform handRoot)
@@ -331,18 +471,4 @@ public class GameSceneCardBootstrap : MonoBehaviour
         return null;
     }
 
-    private static void SetPrivateField<TTarget, TValue>(TTarget target, string fieldName, TValue value)
-        where TTarget : class
-    {
-        if (target == null)
-        {
-            return;
-        }
-
-        var field = typeof(TTarget).GetField(fieldName, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-        if (field != null)
-        {
-            field.SetValue(target, value);
-        }
-    }
 }

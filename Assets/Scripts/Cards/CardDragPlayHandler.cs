@@ -54,6 +54,24 @@ public class CardDragPlayHandler : MonoBehaviour
     /// </summary>
     public bool IsConsumed => isConsumed;
 
+    public void ConfigureTablePlacement(
+        CardView tablePrefab,
+        GameObject cardPrefab,
+        GameObject cardParent,
+        GameObject tableAnchor,
+        Vector3 fallbackWorldPosition,
+        bool useTravelAnimation,
+        float tableCardScale)
+    {
+        tableCardPrefab = tablePrefab;
+        worldCardPrefab = cardPrefab;
+        worldCardParent = cardParent;
+        fixedTableAnchor = tableAnchor;
+        fixedWorldPosition = fallbackWorldPosition;
+        playUseTravelAnimation = useTravelAnimation;
+        worldCardScale = tableCardScale;
+    }
+
     private void Awake()
     {
         cardRect = transform as RectTransform;
@@ -220,7 +238,34 @@ public class CardDragPlayHandler : MonoBehaviour
     /// </summary>
     private void ResolveCanvasReference()
     {
-        if (targetCanvas == null)
+        Canvas[] parentCanvases = GetComponentsInParent<Canvas>(true);
+        Canvas bestCanvas = null;
+
+        for (int i = 0; i < parentCanvases.Length; i++)
+        {
+            Canvas canvas = parentCanvases[i];
+            if (canvas == null)
+            {
+                continue;
+            }
+
+            if (bestCanvas == null)
+            {
+                bestCanvas = canvas;
+            }
+
+            if (canvas.renderMode != RenderMode.ScreenSpaceOverlay && canvas.worldCamera != null)
+            {
+                bestCanvas = canvas;
+                break;
+            }
+        }
+
+        if (bestCanvas != null)
+        {
+            targetCanvas = bestCanvas;
+        }
+        else if (targetCanvas == null)
         {
             targetCanvas = GetComponentInParent<Canvas>();
         }
@@ -228,13 +273,53 @@ public class CardDragPlayHandler : MonoBehaviour
         dragCamera = null;
         if (targetCanvas != null && targetCanvas.renderMode != RenderMode.ScreenSpaceOverlay)
         {
-            dragCamera = targetCanvas.worldCamera != null ? targetCanvas.worldCamera : Camera.main;
+            dragCamera = targetCanvas.worldCamera != null ? targetCanvas.worldCamera : ResolveFallbackCamera();
         }
 
         if (dragCamera == null)
         {
-            dragCamera = Camera.main;
+            dragCamera = ResolveFallbackCamera();
         }
+    }
+
+    private Camera ResolveFallbackCamera()
+    {
+        Camera mainCamera = Camera.main;
+        if (mainCamera != null)
+        {
+            return mainCamera;
+        }
+
+        Camera namedMainCamera = FindCameraByName("Main Camera");
+        if (namedMainCamera != null)
+        {
+            return namedMainCamera;
+        }
+
+        Camera[] cameras = UnityEngine.Object.FindObjectsOfType<Camera>(true);
+        for (int i = 0; i < cameras.Length; i++)
+        {
+            if (cameras[i] != null && cameras[i].isActiveAndEnabled)
+            {
+                return cameras[i];
+            }
+        }
+
+        return cameras.Length > 0 ? cameras[0] : null;
+    }
+
+    private static Camera FindCameraByName(string cameraName)
+    {
+        Camera[] cameras = UnityEngine.Object.FindObjectsOfType<Camera>(true);
+        for (int i = 0; i < cameras.Length; i++)
+        {
+            if (cameras[i] != null && cameras[i].name == cameraName)
+            {
+                return cameras[i];
+            }
+        }
+
+        return null;
     }
 
     /// <summary>
