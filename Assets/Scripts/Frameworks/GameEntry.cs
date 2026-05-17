@@ -41,7 +41,10 @@ public class GameEntry : SingletonMono<GameEntry>
 
     private void OnApplicationQuit()
     {
-        managerCenter.ShutdownAll();
+        if (managerCenter != null)
+        {
+            managerCenter.ShutdownAll();
+        }
     }
 
     private void RegisterManagers()

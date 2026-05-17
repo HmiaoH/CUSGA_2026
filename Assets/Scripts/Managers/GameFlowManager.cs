@@ -1,9 +1,14 @@
 using Frameworks;
+using UnityEngine;
+
 namespace Managers
 {
     public class GameFlowManager : ManagerBase<GameFlowManager>
     {
-        public GameState CurrentState { get; private set; } =  GameState.None;
+        [Header("剧情对话")]
+        [SerializeField] private DialogueSequenceSO openingDialogue;
+
+        public GameState CurrentState { get; private set; } = GameState.None;
 
         // 初始时进入开场动画状态
         protected override void OnInit()
@@ -17,6 +22,10 @@ namespace Managers
         /// <param name="newState">新的状态</param>
         public void ChangeState(GameState newState)
         {
+            //debug
+            Debug.Log("Current State: " + CurrentState);
+            Debug.Log("Enter State: " + newState);
+
             if (CurrentState == newState)
             {
                 return;
@@ -57,9 +66,8 @@ namespace Managers
         }
 
         /// <summary>
-        /// 进入某个状态，每一种情况如果有操作，就在此脚本中新建一个Enterxxx()的函数，下面调用这个函数。
+        /// 进入某个状态
         /// </summary>
-        /// <param name="state">进入的状态</param>
         private void EnterState(GameState state)
         {
             switch (state)
@@ -82,18 +90,37 @@ namespace Managers
                 case GameState.LevelComplete:
                     break;
                 case GameState.Dialogue:
+                    EnterDialogue();
                     break;
             }
         }
 
         /// <summary>
         /// 进入开场动画状态，播放开场动画。
+        /// 动画播放完毕后进入对话状态。
         /// </summary>
         private void EnterOpeningCutscene()
         {
-            return;
-            // CutsceneManager.Instance.PlayCutscene(Utils.CutsceneName.OPENING, null);
+            // TODO: 开场动画恢复后，改为：
+            // CutsceneManager.Instance.PlayCutscene(
+            //     Utils.CutsceneName.OPENING,
+            //     () => ChangeState(GameState.Dialogue)
+            // );
+
+            // 当前没有开场动画，直接进入对话
+            ChangeState(GameState.Dialogue);
         }
 
+        /// <summary>
+        /// 进入对话状态，播放开场剧情对话。
+        /// 对话播放完毕后进入 PlayerTurnStart。
+        /// </summary>
+        private void EnterDialogue()
+        {
+            DialogueManager.Instance.StartDialogue(
+                openingDialogue,
+                () => ChangeState(GameState.PlayerTurnStart)
+            );
+        }
     }
 }
